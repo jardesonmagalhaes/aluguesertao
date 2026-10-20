@@ -1,9 +1,10 @@
+```html
 <!DOCTYPE html>
 <html lang="pt-BR" class="h-full bg-slate-50">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Aluga Sertão | Imóveis no Sertão Central</title>
+  <title>Aluga Sertão | Portal Imobiliário do Sertão Central</title>
   
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -26,6 +27,7 @@
             sertao: {
               amber: '#d97706',
               emerald: '#059669',
+              terracota: '#c2410c'
             }
           },
           fontFamily: {
@@ -39,7 +41,7 @@
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -54,104 +56,139 @@
     }
     [x-cloak] { display: none !important; }
     
-    /* Scrollbar estilizada e oculta para navegação horizontal no celular */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    
-    /* Previne esticamento exagerado no mobile */
     .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1rem); }
   </style>
 </head>
 <body class="h-full flex flex-col antialiased text-slate-800 pb-20 md:pb-0 selection:bg-brand-500 selection:text-white" x-data="alugaSertaoApp()" x-init="initApp()">
 
-  <!-- HEADER COMPACTO E FIXO -->
-  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
-    <div class="max-w-7xl mx-auto px-4 h-15 flex items-center justify-between">
+  <!-- TOAST NOTIFICATION -->
+  <div x-show="toast.show" x-cloak 
+       x-transition:enter="transition ease-out duration-300"
+       x-transition:enter-start="opacity-0 transform translate-y-4"
+       x-transition:enter-end="opacity-100 transform translate-y-0"
+       x-transition:leave="transition ease-in duration-200"
+       x-transition:leave-start="opacity-100 transform translate-y-0"
+       x-transition:leave-end="opacity-0 transform translate-y-4"
+       class="fixed top-4 right-4 z-50 max-w-sm w-full bg-slate-900 text-white p-4 rounded-2xl shadow-2xl border border-slate-700 flex items-center gap-3">
+    <div :class="toast.type === 'success' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'" class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 font-bold">
+      <i :data-lucide="toast.type === 'success' ? 'check-circle-2' : 'info'" class="w-5 h-5"></i>
+    </div>
+    <div class="flex-1">
+      <h5 class="text-xs font-bold" x-text="toast.title"></h5>
+      <p class="text-[11px] text-slate-300" x-text="toast.message"></p>
+    </div>
+  </div>
+
+  <!-- HEADER / CABEÇALHO ultra profissional -->
+  <header class="sticky top-0 z-30 bg-slate-900 text-white border-b border-slate-800/80 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
       
-      <!-- LOGO -->
-      <a href="#" @click.prevent="resetFilters()" class="flex items-center gap-2.5 active:opacity-80 transition-opacity">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-700 to-brand-500 flex items-center justify-center text-white font-extrabold text-lg shadow-md shadow-brand-500/20">
+      <!-- LOGO MARCANTE -->
+      <a href="#" @click.prevent="resetFilters()" class="flex items-center gap-3 active:opacity-90 transition-opacity">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-600 to-sky-400 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-brand-500/30">
           AS
         </div>
         <div>
-          <span class="text-lg font-extrabold tracking-tight text-slate-900 leading-none block">Aluga<span class="text-brand-600">Sertão</span></span>
-          <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mt-0.5">Sertão Central · Ceará</span>
+          <span class="text-xl font-black tracking-tight text-white leading-none block">Aluga<span class="text-sky-400">Sertão</span></span>
+          <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mt-0.5">Sertão Central · Ceará</span>
         </div>
       </a>
 
-      <!-- AÇÕES TOPO -->
-      <div class="flex items-center gap-2">
+      <!-- AÇÕES TOPO DESKTOP/MOBILE -->
+      <div class="flex items-center gap-2 sm:gap-3">
         <!-- BOTÃO PAINEL ADMIN -->
-        <button @click="openAdminModal = true" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 px-3 py-2 rounded-xl transition-colors">
-          <i data-lucide="shield-check" class="w-4 h-4 text-brand-600"></i>
+        <button @click="openAdminModal = true" class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 px-3 py-2 rounded-xl transition-all border border-slate-700/80">
+          <i data-lucide="shield-check" class="w-4 h-4 text-sky-400"></i>
           <span class="hidden sm:inline">Painel Admin</span>
           <template x-if="pendingCount > 0">
-            <span class="bg-amber-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-bold" x-text="pendingCount"></span>
+            <span class="bg-amber-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-black animate-pulse" x-text="pendingCount"></span>
           </template>
         </button>
 
-        <!-- BOTÃO ANUNCIAR DESKTOP -->
-        <button @click="openFormModal = true" class="hidden md:inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-sm transition-all active:scale-[0.98]">
+        <!-- BOTÃO ANUNCIAR -->
+        <button @click="openFormModal = true" class="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs sm:text-sm px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl shadow-md transition-all active:scale-95">
           <i data-lucide="plus-circle" class="w-4 h-4"></i>
           <span>Anunciar Imóvel</span>
-          <span class="bg-brand-500 text-white text-[10px] px-1.5 py-0.5 rounded-md font-extrabold">R$ 10</span>
+          <span class="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded-md font-black">R$ 10</span>
         </button>
       </div>
 
     </div>
   </header>
 
-  <!-- BARRA DE PESQUISA & FILTROS REGIONAIS -->
-  <section class="bg-slate-900 text-white pt-6 pb-8 px-4 relative overflow-hidden shadow-inner">
-    <div class="max-w-4xl mx-auto text-center relative z-10">
+  <!-- HERO BANNER COM DESTAQUE -->
+  <section class="bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white pt-8 pb-10 px-4 relative overflow-hidden border-b border-slate-800">
+    <div class="max-w-5xl mx-auto text-center relative z-10">
       
-      <h1 class="text-xl sm:text-3xl font-extrabold tracking-tight mb-1 text-white">
-        Alugue direto no <span class="text-sky-400">Sertão Central</span>
+      <span class="inline-flex items-center gap-1.5 bg-brand-500/10 border border-brand-400/20 text-sky-300 text-[11px] font-bold px-3 py-1 rounded-full mb-3">
+        <i data-lucide="map-pin" class="w-3.5 h-3.5 text-sky-400"></i>
+        O Maior Portal de Aluguel Directo do Sertão Central
+      </span>
+
+      <h1 class="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight mb-2 text-white leading-tight">
+        Alugue Casas e Pontos Comerciais <br class="hidden sm:inline"><span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-emerald-400">Sem Intermediários</span>
       </h1>
-      <p class="text-xs sm:text-sm text-slate-300 mb-5 font-normal max-w-xl mx-auto">
-        Casas, kitnets e pontos comerciais em Senador Pompeu, Quixeramobim, Quixadá e região.
+      <p class="text-xs sm:text-base text-slate-300 mb-6 font-normal max-w-2xl mx-auto">
+        Encontre opções para morar ou empreender direto com os donos. Anuncie por apenas R$ 10,00/mês.
       </p>
 
-      <!-- CARD DE BUSCA COMPACTO E RESPONSIVO -->
-      <div class="bg-white p-2.5 rounded-2xl shadow-xl text-slate-800 space-y-2 sm:space-y-0 sm:grid sm:grid-cols-12 sm:gap-2 max-w-3xl mx-auto">
+      <!-- BARRA DE PESQUISA RÁPIDA -->
+      <div class="bg-white/95 backdrop-blur-md p-3 rounded-2xl shadow-2xl text-slate-800 grid grid-cols-1 sm:grid-cols-12 gap-2 max-w-3xl mx-auto border border-white/20">
         
-        <!-- INPUT PESQUISA -->
-        <div class="sm:col-span-5 relative">
-          <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-          <input type="text" x-model="searchQuery" placeholder="Bairro, rua ou palavra-chave..." class="w-full pl-9 pr-3 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 bg-slate-50/50">
+        <div class="sm:col-span-7 relative">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input type="text" x-model="searchQuery" placeholder="Buscar por bairro, rua, ponto de referência..." class="w-full pl-10 pr-3 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-500 bg-slate-50/50">
         </div>
 
-        <!-- SELECT CIDADE -->
-        <div class="sm:col-span-4 relative">
-          <i data-lucide="map-pin" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-          <select x-model="selectedCity" class="w-full pl-9 pr-7 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 font-medium focus:outline-none focus:border-brand-500 appearance-none">
-            <option value="">Todas as Cidades</option>
-            <template x-for="cidade in cidades" :key="cidade">
-              <option :value="cidade" x-text="cidade"></option>
-            </template>
-          </select>
-        </div>
-
-        <!-- SELECT MODALIDADE -->
-        <div class="sm:col-span-3">
-          <select x-model="selectedType" class="w-full px-3 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 font-medium focus:outline-none focus:border-brand-500">
-            <option value="">Todos os Tipos</option>
+        <div class="sm:col-span-5">
+          <select x-model="selectedType" class="w-full px-3 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 font-bold focus:outline-none focus:border-brand-500">
+            <option value="">Todas as Modalidades</option>
             <option value="mensal">Aluguel Mensal</option>
-            <option value="temporada">Temporada</option>
-            <option value="comercial">Comercial</option>
+            <option value="temporada">Temporada / Eventos</option>
+            <option value="comercial">Ponto Comercial</option>
           </select>
         </div>
       </div>
 
-      <!-- SLIDER HORIZONTAL DE CIDADES PARA TOUCH/MOBILE -->
-      <div class="flex items-center gap-2 mt-4 overflow-x-auto no-scrollbar pb-1 px-1 -mx-4 sm:mx-0 sm:justify-center">
-        <span class="text-[11px] font-semibold text-slate-400 flex-shrink-0 ml-4 sm:ml-0">Cidades:</span>
+    </div>
+  </section>
+
+  <!-- SEÇÃO DE SELEÇÃO DE CIDADE FACILITADA E EM DESTAQUE -->
+  <section class="max-w-7xl mx-auto px-4 -mt-5 relative z-20">
+    <div class="bg-white rounded-3xl p-4 sm:p-6 shadow-xl border border-slate-200/80">
+      
+      <div class="flex items-center justify-between mb-3.5">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-sky-100 text-brand-600 flex items-center justify-center font-bold">
+            <i data-lucide="building-2" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">Selecione a sua Cidade:</h3>
+            <p class="text-[11px] text-slate-500 hidden sm:block">Clique em um município para filtrar as casas disponíveis</p>
+          </div>
+        </div>
+
+        <template x-if="selectedCity">
+          <button @click="selectedCity = ''" class="text-xs font-bold text-brand-600 hover:text-brand-700 bg-brand-50 px-3 py-1 rounded-lg transition-colors">
+            Mostrar Todas
+          </button>
+        </template>
+      </div>
+
+      <!-- GRID DE CARDS DAS CIDADES COM BADGES VISÍVEIS -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
         <template x-for="cidade in cidades" :key="cidade">
           <button 
             @click="selectedCity = (selectedCity === cidade ? '' : cidade)"
-            :class="selectedCity === cidade ? 'bg-brand-500 text-white border-brand-500 shadow-xs' : 'bg-slate-800/90 text-slate-300 border-slate-700/80 active:bg-slate-700'"
-            class="text-xs px-3 py-1.5 rounded-full border transition-all font-medium flex-shrink-0">
-            <span x-text="cidade"></span>
+            :class="selectedCity === cidade 
+              ? 'bg-gradient-to-r from-brand-600 to-sky-600 text-white ring-2 ring-brand-500 shadow-md scale-[1.02]' 
+              : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/80 active:scale-95'"
+            class="p-3 rounded-2xl transition-all duration-200 flex flex-col items-center justify-center text-center group cursor-pointer">
+            <i data-lucide="map-pin" :class="selectedCity === cidade ? 'text-white' : 'text-slate-400 group-hover:text-brand-600'" class="w-4 h-4 mb-1 transition-colors"></i>
+            <span class="text-xs font-extrabold leading-tight" x-text="cidade"></span>
+            <span class="text-[9px] mt-1 font-semibold opacity-80" x-text="getCityCount(cidade) + ' casas'"></span>
           </button>
         </template>
       </div>
@@ -159,60 +196,61 @@
     </div>
   </section>
 
-  <!-- LISTAGEM DE IMÓVEIS -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+  <!-- MAIN LISTAGEM -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
     
-    <!-- HEADER DA LISTA -->
+    <!-- BARRA SUPERIOR DA LISTA -->
     <div class="flex items-center justify-between pb-4 border-b border-slate-200 mb-6">
       <div>
-        <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">Imóveis Disponíveis</h2>
+        <h2 class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
+          <span x-text="selectedCity ? 'Imóveis em ' + selectedCity : 'Todos os Imóveis'"></span>
+        </h2>
         <p class="text-xs text-slate-500">
-          <span class="font-bold text-slate-800" x-text="filteredImoveis.length"></span> opções encontradas
+          Exibindo <span class="font-bold text-slate-800" x-text="filteredImoveis.length"></span> opções disponíveis
         </p>
       </div>
 
       <!-- ORDENAÇÃO -->
-      <select x-model="sortBy" class="text-xs border border-slate-200 rounded-xl px-2.5 py-1.5 bg-white text-slate-700 font-medium focus:outline-none focus:border-brand-500 shadow-2xs">
+      <select x-model="sortBy" class="text-xs border border-slate-200 rounded-xl px-3 py-2 bg-white text-slate-700 font-bold focus:outline-none focus:border-brand-500 shadow-xs">
         <option value="recentes">Mais Recentes</option>
         <option value="menor-preco">Menor Preço</option>
         <option value="maior-preco">Maior Preço</option>
       </select>
     </div>
 
-    <!-- NENHUM RESULTADO -->
+    <!-- ESTADO VAZIO -->
     <template x-if="filteredImoveis.length === 0">
-      <div class="bg-white rounded-3xl border border-slate-200 p-8 text-center max-w-sm mx-auto my-8 shadow-xs">
-        <div class="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400 mx-auto mb-3">
-          <i data-lucide="home-x" class="w-7 h-7"></i>
+      <div class="bg-white rounded-3xl border border-slate-200 p-10 text-center max-w-md mx-auto my-8 shadow-sm">
+        <div class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400 mx-auto mb-3">
+          <i data-lucide="home-x" class="w-8 h-8"></i>
         </div>
         <h3 class="text-base font-bold text-slate-900 mb-1">Nenhum imóvel encontrado</h3>
-        <p class="text-xs text-slate-500 mb-5">Tente trocar a cidade ou o termo digitado no filtro de pesquisa.</p>
-        <button @click="resetFilters()" class="inline-flex items-center justify-center gap-2 text-xs font-bold text-brand-600 bg-brand-50 hover:bg-brand-100 px-4 py-2.5 rounded-xl transition-colors w-full">
+        <p class="text-xs text-slate-500 mb-5">Não há casas ou pontos ativos nesta cidade ou filtro selecionado.</p>
+        <button @click="resetFilters()" class="inline-flex items-center justify-center gap-2 text-xs font-bold text-brand-600 bg-brand-50 hover:bg-brand-100 px-5 py-2.5 rounded-xl transition-colors w-full">
           Limpar Filtros
         </button>
       </div>
     </template>
 
-    <!-- GRID DOS CARDS DE IMÓVEIS (MOBILE-OPTIMIZED) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    <!-- CARDS DOS IMÓVEIS -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       <template x-for="imovel in sortedImoveis" :key="imovel.id">
-        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md transition-all overflow-hidden flex flex-col group">
+        <div class="bg-white rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col group">
           
           <!-- FOTO & SLIDER / BADGES -->
-          <div class="relative h-56 bg-slate-100 overflow-hidden cursor-pointer" @click="openGallery(imovel)">
-            <img :src="imovel.fotos[0]" :alt="imovel.titulo" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+          <div class="relative h-60 bg-slate-900 overflow-hidden cursor-pointer" @click="openGallery(imovel)">
+            <img :src="imovel.fotos[0]" :alt="imovel.titulo" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
             
-            <!-- CONTADOR DE FOTOS -->
             <template x-if="imovel.fotos.length > 1">
-              <div class="absolute bottom-3 right-3 bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1">
-                <i data-lucide="camera" class="w-3 h-3"></i>
+              <div class="absolute bottom-3 right-3 bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-xl flex items-center gap-1 border border-white/10">
+                <i data-lucide="camera" class="w-3.5 h-3.5"></i>
                 <span x-text="`1/${imovel.fotos.length}`"></span>
               </div>
             </template>
 
             <!-- BADGES -->
             <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
-              <span class="bg-slate-900/85 backdrop-blur-md text-white text-[11px] font-semibold px-2.5 py-1 rounded-lg shadow-xs flex items-center gap-1">
+              <span class="bg-slate-900/85 backdrop-blur-md text-white text-[11px] font-bold px-3 py-1 rounded-xl shadow-xs flex items-center gap-1 border border-white/10">
                 <i data-lucide="map-pin" class="w-3 h-3 text-sky-400"></i>
                 <span x-text="imovel.cidade"></span>
               </span>
@@ -220,17 +258,16 @@
 
             <div class="absolute top-3 right-3 flex flex-col items-end gap-1">
               <template x-if="imovel.destaque">
-                <span class="bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow-xs flex items-center gap-1 uppercase tracking-wider">
-                  <i data-lucide="star" class="w-3 h-3 fill-current"></i> Destaque
+                <span class="bg-amber-500 text-white text-[10px] font-black px-2.5 py-1 rounded-xl shadow-md flex items-center gap-1 uppercase tracking-wider">
+                  <i data-lucide="star" class="w-3 h-3 fill-current"></i> Destaque VIP
                 </span>
               </template>
-              <span class="bg-white/95 backdrop-blur-md text-slate-800 text-[10px] font-bold px-2 py-0.5 rounded-md shadow-xs uppercase tracking-wider" x-text="imovel.tipoContrato"></span>
+              <span class="bg-white/95 backdrop-blur-md text-slate-900 text-[10px] font-black px-2.5 py-1 rounded-xl shadow-xs uppercase tracking-wider" x-text="imovel.tipoContrato"></span>
             </div>
 
-            <!-- ETIQUETA ALUGADO -->
             <template x-if="imovel.status === 'alugado'">
-              <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center">
-                <span class="bg-emerald-600 text-white font-black text-base px-4 py-2 rounded-xl shadow-lg border-2 border-white tracking-widest uppercase transform -rotate-3">
+              <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center">
+                <span class="bg-emerald-600 text-white font-black text-lg px-5 py-2.5 rounded-2xl shadow-xl border-2 border-white tracking-widest uppercase transform -rotate-3">
                   ALUGADO!
                 </span>
               </div>
@@ -238,31 +275,38 @@
           </div>
 
           <!-- DETALHES -->
-          <div class="p-4 flex-1 flex flex-col justify-between">
+          <div class="p-5 flex-1 flex flex-col justify-between">
             <div>
-              <div class="flex items-baseline justify-between gap-2 mb-1.5">
-                <span class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+              <div class="flex items-baseline justify-between gap-2 mb-2">
+                <span class="text-2xl font-black text-slate-900 tracking-tight">
                   R$ <span x-text="formatMoney(imovel.valor)"></span>
                   <span class="text-xs font-normal text-slate-500" x-text="imovel.tipoContrato === 'temporada' ? '/diária' : '/mês'"></span>
                 </span>
-                <span class="text-xs font-medium text-slate-500 truncate max-w-[120px]" x-text="imovel.bairro"></span>
+                <span class="text-xs font-bold text-slate-500 truncate max-w-[130px]" x-text="imovel.bairro"></span>
               </div>
 
-              <h3 @click="openGallery(imovel)" class="text-sm font-bold text-slate-800 line-clamp-1 mb-1.5 cursor-pointer hover:text-brand-600 transition-colors" x-text="imovel.titulo"></h3>
-              <p class="text-xs text-slate-500 line-clamp-2 mb-3 leading-relaxed" x-text="imovel.descricao"></p>
+              <h3 @click="openGallery(imovel)" class="text-base font-extrabold text-slate-800 line-clamp-1 mb-1.5 cursor-pointer hover:text-brand-600 transition-colors" x-text="imovel.titulo"></h3>
+              
+              <!-- ENDEREÇO / PONTO DE REFERÊNCIA -->
+              <p class="text-xs font-semibold text-slate-600 flex items-center gap-1.5 mb-2 bg-slate-50 p-2 rounded-xl border border-slate-100">
+                <i data-lucide="navigation" class="w-3.5 h-3.5 text-brand-600 flex-shrink-0"></i>
+                <span class="truncate" x-text="imovel.endereco || 'Endereço informado no contato'"></span>
+              </p>
+
+              <p class="text-xs text-slate-500 line-clamp-2 mb-4 leading-relaxed" x-text="imovel.descricao"></p>
 
               <!-- ÍCONES TÉCNICOS -->
-              <div class="flex items-center gap-3 py-2.5 border-y border-slate-100 text-xs font-medium text-slate-600 mb-3">
+              <div class="flex items-center gap-4 py-3 border-y border-slate-100 text-xs font-semibold text-slate-700 mb-4">
                 <div class="flex items-center gap-1">
-                  <i data-lucide="bed" class="w-3.5 h-3.5 text-slate-400"></i>
+                  <i data-lucide="bed" class="w-4 h-4 text-slate-400"></i>
                   <span x-text="imovel.quartos + ' Qts'"></span>
                 </div>
                 <div class="flex items-center gap-1">
-                  <i data-lucide="bath" class="w-3.5 h-3.5 text-slate-400"></i>
+                  <i data-lucide="bath" class="w-4 h-4 text-slate-400"></i>
                   <span x-text="imovel.banheiros + ' Ban'"></span>
                 </div>
                 <div class="flex items-center gap-1">
-                  <i data-lucide="car" class="w-3.5 h-3.5 text-slate-400"></i>
+                  <i data-lucide="car" class="w-4 h-4 text-slate-400"></i>
                   <span x-text="imovel.vagas + ' Vagas'"></span>
                 </div>
               </div>
@@ -271,21 +315,20 @@
             <!-- BOTÕES DE AÇÃO -->
             <div class="space-y-2">
               <template x-if="imovel.status === 'ativo'">
-                <a :href="generateWhatsappUrl(imovel)" target="_blank" class="w-full inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-xs transition-all">
+                <a :href="generateWhatsappUrl(imovel)" target="_blank" class="w-full inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-extrabold text-xs py-3 px-4 rounded-xl shadow-md transition-all">
                   <i data-lucide="message-circle" class="w-4 h-4"></i>
-                  Falar no WhatsApp
+                  Falar no WhatsApp Directo
                 </a>
               </template>
 
               <template x-if="imovel.status === 'alugado'">
-                <button disabled class="w-full bg-slate-100 text-slate-400 font-bold text-xs py-2.5 px-4 rounded-xl cursor-not-allowed">
+                <button disabled class="w-full bg-slate-100 text-slate-400 font-bold text-xs py-3 px-4 rounded-xl cursor-not-allowed">
                   Imóvel Já Alugado
                 </button>
               </template>
 
-              <!-- OPÇÃO PARA MARCAR COMO ALUGADO (SE FOR O PROPRIETÁRIO OU TESTE) -->
               <template x-if="imovel.status === 'ativo'">
-                <button @click="markAsAlugado(imovel.id)" class="w-full text-center text-[10px] font-semibold text-slate-400 hover:text-emerald-600 py-1 transition-colors">
+                <button @click="markAsAlugado(imovel.id)" class="w-full text-center text-[10px] font-bold text-slate-400 hover:text-emerald-600 py-1 transition-colors">
                   É o dono? Marcar como Alugado
                 </button>
               </template>
@@ -298,67 +341,65 @@
 
   </main>
 
-  <!-- BOTTOM BAR NAVEGÁVEL MOBILE (PWA FEEL) -->
-  <nav class="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 px-6 py-2.5 flex items-center justify-around pb-safe shadow-lg">
-    <button @click="resetFilters()" class="flex flex-col items-center gap-0.5 text-brand-600 font-bold text-[10px]">
+  <!-- BOTTOM BAR MOBILE -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 px-6 py-2.5 flex items-center justify-around pb-safe shadow-2xl text-white">
+    <button @click="resetFilters()" class="flex flex-col items-center gap-0.5 text-sky-400 font-bold text-[10px]">
       <i data-lucide="home" class="w-5 h-5"></i>
       <span>Início</span>
     </button>
 
-    <button @click="openFormModal = true" class="flex flex-col items-center gap-0.5 text-slate-600 hover:text-brand-600 font-semibold text-[10px] relative">
-      <div class="w-10 h-10 -mt-5 bg-brand-600 text-white rounded-full flex items-center justify-center shadow-md shadow-brand-600/30 border-2 border-white">
+    <button @click="openFormModal = true" class="flex flex-col items-center gap-0.5 text-slate-300 hover:text-white font-semibold text-[10px] relative">
+      <div class="w-10 h-10 -mt-6 bg-gradient-to-tr from-emerald-600 to-teal-500 text-white rounded-full flex items-center justify-center shadow-lg border-2 border-slate-900">
         <i data-lucide="plus" class="w-6 h-6"></i>
       </div>
       <span class="mt-0.5">Anunciar</span>
     </button>
 
-    <button @click="openAdminModal = true" class="flex flex-col items-center gap-0.5 text-slate-600 hover:text-brand-600 font-semibold text-[10px] relative">
+    <button @click="openAdminModal = true" class="flex flex-col items-center gap-0.5 text-slate-300 hover:text-white font-semibold text-[10px] relative">
       <i data-lucide="shield-check" class="w-5 h-5"></i>
       <span>Admin</span>
       <template x-if="pendingCount > 0">
-        <span class="absolute top-0 right-3 bg-amber-500 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold" x-text="pendingCount"></span>
+        <span class="absolute top-0 right-2 bg-amber-500 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-black" x-text="pendingCount"></span>
       </template>
     </button>
   </nav>
 
-  <!-- ========================================== -->
-  <!-- MODAL: FORMULÁRIO DE ANÚNCIO (3 ETAPAS)   -->
-  <!-- ========================================== -->
-  <div x-show="openFormModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/70 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
-    <div @click.outside="openFormModal = false" class="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-200">
+  <!-- MODAL FORMULÁRIO DE CADASTRO -->
+  <div x-show="openFormModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div @click.outside="openFormModal = false" class="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden">
       
-      <!-- HEADER MODAL -->
-      <div class="bg-slate-50 px-5 py-3.5 border-b border-slate-200 flex items-center justify-between flex-shrink-0">
+      <!-- HEADER -->
+      <div class="bg-slate-900 text-white px-5 py-4 flex items-center justify-between flex-shrink-0">
         <div>
-          <h3 class="text-base font-bold text-slate-900">Anunciar Imóvel</h3>
-          <p class="text-[11px] text-slate-500">Preencha e faça o upload das fotos do seu celular</p>
+          <h3 class="text-base font-extrabold">Anunciar Imóvel no Sertão Central</h3>
+          <p class="text-[11px] text-slate-400">Preencha os dados e faça o upload das fotos do imóvel</p>
         </div>
-        <button @click="openFormModal = false" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-200/60 transition-colors">
+        <button @click="openFormModal = false" class="text-slate-400 hover:text-white p-1 rounded-xl transition-colors">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
       <!-- PROGRESSO -->
       <div class="bg-slate-100 h-1.5 w-full flex-shrink-0">
-        <div class="bg-brand-600 h-full transition-all duration-300" :style="`width: ${(formStep / 3) * 100}%`"></div>
+        <div class="bg-gradient-to-r from-brand-600 to-sky-500 h-full transition-all duration-300" :style="`width: ${(formStep / 3) * 100}%`"></div>
       </div>
 
-      <!-- CORPO FORMULÁRIO -->
+      <!-- FORMULÁRIO -->
       <form @submit.prevent="submitForm()" class="p-5 overflow-y-auto flex-1 space-y-4">
         
-        <!-- ETAPA 1: DADOS DO IMÓVEL -->
-        <div x-show="formStep === 1" class="space-y-3.5">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-brand-600 block">Etapa 1 de 3 · Informações da Casa</span>
+        <!-- ETAPA 1 -->
+        <div x-show="formStep === 1" class="space-y-3">
+          <span class="text-[11px] font-black uppercase tracking-wider text-brand-600 block">Etapa 1 de 3 · Informações Básicas</span>
 
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">Título do Anúncio *</label>
-            <input type="text" x-model="formData.titulo" required placeholder="Ex: Casa com 3 quartos no Centro perto da Matriz" class="w-full px-3 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-500">
+            <label class="block text-xs font-bold text-slate-800 mb-1">Título do Anúncio *</label>
+            <input type="text" x-model="formData.titulo" required placeholder="Ex: Casa com 3 quartos no Centro perto da Matriz" class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-500">
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Cidade *</label>
-              <select x-model="formData.cidade" required class="w-full px-3 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-brand-500">
+              <label class="block text-xs font-bold text-slate-800 mb-1">Cidade *</label>
+              <select x-model="formData.cidade" required class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-brand-500">
                 <option value="">Selecione a cidade</option>
                 <template x-for="cidade in cidades" :key="cidade">
                   <option :value="cidade" x-text="cidade"></option>
@@ -366,82 +407,88 @@
               </select>
             </div>
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Bairro *</label>
-              <input type="text" x-model="formData.bairro" required placeholder="Ex: Centro, Bairro Alto" class="w-full px-3 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-500">
+              <label class="block text-xs font-bold text-slate-800 mb-1">Bairro *</label>
+              <input type="text" x-model="formData.bairro" required placeholder="Ex: Centro, Bairro Alto" class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-500">
             </div>
+          </div>
+
+          <!-- CAMPO NOVO: ENDEREÇO COMPLETO E PONTO DE REFERÊNCIA -->
+          <div>
+            <label class="block text-xs font-bold text-slate-800 mb-1">Endereço Completo / Ponto de Referência *</label>
+            <input type="text" x-model="formData.endereco" required placeholder="Ex: Rua Cel. Antonio Luis, 120 (Próximo à Igreja Matriz)" class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-500">
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Modalidade *</label>
-              <select x-model="formData.tipoContrato" required class="w-full px-3 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-brand-500">
+              <label class="block text-xs font-bold text-slate-800 mb-1">Modalidade *</label>
+              <select x-model="formData.tipoContrato" required class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-brand-500">
                 <option value="mensal">Aluguel Mensal</option>
                 <option value="temporada">Temporada / Eventos</option>
                 <option value="comercial">Ponto Comercial</option>
               </select>
             </div>
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Valor do Aluguel (R$) *</label>
-              <input type="number" x-model.number="formData.valor" required placeholder="Ex: 650" class="w-full px-3 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-500">
+              <label class="block text-xs font-bold text-slate-800 mb-1">Valor do Aluguel (R$) *</label>
+              <input type="number" x-model.number="formData.valor" required placeholder="Ex: 650" class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-500">
             </div>
           </div>
 
           <div class="grid grid-cols-3 gap-2">
             <div>
-              <label class="block text-[11px] font-semibold text-slate-700 mb-1">Quartos</label>
+              <label class="block text-[11px] font-bold text-slate-800 mb-1">Quartos</label>
               <input type="number" x-model.number="formData.quartos" min="0" class="w-full px-2 py-2 text-xs rounded-xl border border-slate-200 text-center font-bold">
             </div>
             <div>
-              <label class="block text-[11px] font-semibold text-slate-700 mb-1">Banheiros</label>
+              <label class="block text-[11px] font-bold text-slate-800 mb-1">Banheiros</label>
               <input type="number" x-model.number="formData.banheiros" min="0" class="w-full px-2 py-2 text-xs rounded-xl border border-slate-200 text-center font-bold">
             </div>
             <div>
-              <label class="block text-[11px] font-semibold text-slate-700 mb-1">Garagem</label>
+              <label class="block text-[11px] font-bold text-slate-800 mb-1">Garagem</label>
               <input type="number" x-model.number="formData.vagas" min="0" class="w-full px-2 py-2 text-xs rounded-xl border border-slate-200 text-center font-bold">
             </div>
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">Descrição do Imóvel</label>
-            <textarea x-model="formData.descricao" rows="2" placeholder="Explique os detalhes da casa, água, luz, quintal, etc." class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-brand-500"></textarea>
+            <label class="block text-xs font-bold text-slate-800 mb-1">Descrição do Imóvel</label>
+            <textarea x-model="formData.descricao" rows="2" placeholder="Explique os detalhes da casa, água, luz, quintal, etc." class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-brand-500"></textarea>
           </div>
         </div>
 
-        <!-- ETAPA 2: UPLOAD DE FOTOS REAL & CONTATO -->
+        <!-- ETAPA 2 -->
         <div x-show="formStep === 2" class="space-y-4">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-brand-600 block">Etapa 2 de 3 · Fotos da Casa e Contato</span>
+          <span class="text-[11px] font-black uppercase tracking-wider text-brand-600 block">Etapa 2 de 3 · Fotos e Proprietário</span>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Nome do Responsável *</label>
-              <input type="text" x-model="formData.proprietarioNome" required placeholder="Seu nome" class="w-full px-3 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-500">
+              <label class="block text-xs font-bold text-slate-800 mb-1">Seu Nome Completo *</label>
+              <input type="text" x-model="formData.proprietarioNome" required placeholder="Nome do responsável" class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-500">
             </div>
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">WhatsApp para Contato *</label>
-              <input type="text" x-model="formData.whatsapp" required placeholder="(88) 99999-9999" class="w-full px-3 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-500">
+              <label class="block text-xs font-bold text-slate-800 mb-1">WhatsApp para Contato *</label>
+              <input type="text" x-model="formData.whatsapp" required placeholder="(88) 99999-9999" class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-brand-500">
             </div>
           </div>
 
-          <!-- UPLOAD MULTIPLO DE FOTOS DA GALERIA/CÂMERA -->
+          <!-- UPLOAD MULTIPLO DE FOTOS DA GALERIA -->
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">Fotos da Casa (Upload direto do Celular) *</label>
+            <label class="block text-xs font-bold text-slate-800 mb-1">Fotos da Casa (Upload Galeria/Câmera) *</label>
             
             <div class="border-2 border-dashed border-slate-200 hover:border-brand-500 rounded-2xl p-4 text-center bg-slate-50/50 transition-colors">
               <i data-lucide="image-plus" class="w-8 h-8 text-brand-600 mx-auto mb-1"></i>
-              <p class="text-xs font-bold text-slate-800">Clique para selecionar ou tirar fotos</p>
-              <p class="text-[10px] text-slate-400 mt-0.5">Selecione até 6 fotos da sua galeria</p>
+              <p class="text-xs font-bold text-slate-800">Clique para escolher fotos do seu aparelho</p>
+              <p class="text-[10px] text-slate-400 mt-0.5">Selecione de 1 até 6 fotos</p>
               
               <input type="file" multiple accept="image/*" @change="handleMultiplePhotos($event)" class="hidden" id="photo-upload">
               <label for="photo-upload" class="mt-3 inline-block bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs px-4 py-2 rounded-xl cursor-pointer shadow-xs">
-                Selecionar da Galeria
+                Escolher da Galeria
               </label>
             </div>
 
-            <!-- PREVIEW DAS FOTOS COM REMOÇÃO -->
+            <!-- PREVIEW DAS FOTOS -->
             <template x-if="formData.fotosDataUrl.length > 0">
               <div class="mt-3">
-                <span class="text-[11px] font-semibold text-slate-500 mb-2 block">
-                  Fotos selecionadas (<span x-text="formData.fotosDataUrl.length"></span>/6):
+                <span class="text-[11px] font-bold text-slate-600 mb-2 block">
+                  Fotos Selecionadas (<span x-text="formData.fotosDataUrl.length"></span>/6):
                 </span>
                 <div class="grid grid-cols-3 gap-2">
                   <template x-for="(foto, index) in formData.fotosDataUrl" :key="index">
@@ -457,55 +504,54 @@
             </template>
           </div>
 
-          <!-- ESCOLHA DO PLANO -->
+          <!-- PLANOS -->
           <div class="pt-1">
-            <label class="block text-xs font-bold text-slate-700 mb-2">Escolha o Plano de Divulgação:</label>
+            <label class="block text-xs font-bold text-slate-800 mb-2">Escolha a Opção de Publicação:</label>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <label :class="formData.plano === 'padrao' ? 'border-brand-600 bg-brand-50 ring-1 ring-brand-600' : 'border-slate-200 bg-white'" class="border p-3 rounded-2xl cursor-pointer block transition-all">
                 <div class="flex items-center justify-between mb-0.5">
-                  <span class="font-bold text-xs text-slate-900">Anúncio Padrão</span>
+                  <span class="font-extrabold text-xs text-slate-900">Anúncio Padrão</span>
                   <span class="text-brand-600 font-black text-xs">R$ 10,00</span>
                 </div>
-                <p class="text-[10px] text-slate-500">Fica no ar por 30 dias na cidade.</p>
+                <p class="text-[10px] text-slate-500">Visível por 30 dias na cidade.</p>
                 <input type="radio" name="plano" value="padrao" x-model="formData.plano" class="sr-only">
               </label>
 
               <label :class="formData.plano === 'destaque' ? 'border-amber-500 bg-amber-50 ring-1 ring-amber-500' : 'border-slate-200 bg-white'" class="border p-3 rounded-2xl cursor-pointer block transition-all">
                 <div class="flex items-center justify-between mb-0.5">
-                  <span class="font-bold text-xs text-slate-900 flex items-center gap-1">
+                  <span class="font-extrabold text-xs text-slate-900 flex items-center gap-1">
                     <i data-lucide="star" class="w-3 h-3 text-amber-500 fill-amber-500"></i> Destaque VIP
                   </span>
                   <span class="text-amber-600 font-black text-xs">R$ 20,00</span>
                 </div>
-                <p class="text-[10px] text-slate-500">Topo da busca da cidade + Selo Especial.</p>
+                <p class="text-[10px] text-slate-500">Topo da busca + Selo VIP colorido.</p>
                 <input type="radio" name="plano" value="destaque" x-model="formData.plano" class="sr-only">
               </label>
             </div>
           </div>
         </div>
 
-        <!-- ETAPA 3: PAGAMENTO PIX & UPLOAD COMPROVANTE REAL -->
+        <!-- ETAPA 3 -->
         <div x-show="formStep === 3" class="space-y-4">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-brand-600 block">Etapa 3 de 3 · Pagamento via PIX</span>
+          <span class="text-[11px] font-black uppercase tracking-wider text-brand-600 block">Etapa 3 de 3 · Pagamento via PIX</span>
 
-          <!-- CARD COM DADOS BANCÁRIOS REAL -->
           <div class="bg-slate-900 text-white p-4 rounded-2xl space-y-3">
             <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
               <div>
-                <span class="text-[10px] text-slate-400 block uppercase">Total da Taxa:</span>
-                <span class="text-xl font-black text-emerald-400" x-text="formData.plano === 'destaque' ? 'R$ 20,00' : 'R$ 10,00'"></span>
+                <span class="text-[10px] text-slate-400 block uppercase font-mono">Total a Transferir:</span>
+                <span class="text-2xl font-black text-emerald-400" x-text="formData.plano === 'destaque' ? 'R$ 20,00' : 'R$ 10,00'"></span>
               </div>
-              <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-1 rounded-lg border border-slate-700 font-semibold">30 Dias Ativo</span>
+              <span class="text-[10px] bg-slate-800 text-slate-300 px-2.5 py-1 rounded-xl border border-slate-700 font-bold">30 Dias Ativo</span>
             </div>
 
-            <!-- CHAVE PIX -->
-            <div class="bg-slate-800/90 p-3 rounded-xl border border-slate-700/80 space-y-2">
+            <!-- CHAVE PIX DADOS REAIS -->
+            <div class="bg-slate-800/90 p-3.5 rounded-xl border border-slate-700/80 space-y-2">
               <div class="flex items-center justify-between">
                 <div>
                   <span class="text-[9px] text-slate-400 block font-mono uppercase">Chave PIX (E-mail):</span>
-                  <span class="font-mono text-xs font-bold text-white select-all">jardesonofc@gmail.com</span>
+                  <span class="font-mono text-xs font-extrabold text-white select-all">jardesonofc@gmail.com</span>
                 </div>
-                <button type="button" @click="copyPixKey()" class="text-[11px] font-bold text-sky-400 hover:text-sky-300 bg-sky-950/60 px-2.5 py-1.5 rounded-lg border border-sky-800/60 active:scale-95 transition-all">
+                <button type="button" @click="copyPixKey()" class="text-[11px] font-bold text-sky-400 hover:text-sky-300 bg-sky-950/80 px-3 py-1.5 rounded-xl border border-sky-800/60 active:scale-95 transition-all">
                   <span x-text="copiedPix ? 'Copiado!' : 'Copiar Chave'"></span>
                 </button>
               </div>
@@ -517,23 +563,22 @@
             </div>
           </div>
 
-          <!-- UPLOAD DO COMPROVANTE -->
+          <!-- UPLOAD COMPROVANTE -->
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">Anexar Comprovante do PIX *</label>
+            <label class="block text-xs font-bold text-slate-800 mb-1">Anexar Comprovante do PIX *</label>
             <div class="border-2 border-dashed border-slate-200 hover:border-brand-500 rounded-2xl p-4 text-center bg-slate-50/50">
-              <i data-lucide="file-check" class="w-7 h-7 text-emerald-600 mx-auto mb-1"></i>
+              <i data-lucide="file-check" class="w-8 h-8 text-emerald-600 mx-auto mb-1"></i>
               
               <template x-if="!formData.comprovanteDataUrl">
                 <div>
-                  <p class="text-xs font-bold text-slate-800">Selecione o comprovante (Print ou PDF)</p>
+                  <p class="text-xs font-bold text-slate-800">Anexe o Print ou PDF da Transferência</p>
                   <input type="file" accept="image/*,.pdf" @change="handleComprovanteUpload($event)" class="hidden" id="comprovante-upload">
-                  <label for="comprovante-upload" class="mt-2.5 inline-block bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs px-4 py-2 rounded-xl cursor-pointer">
+                  <label for="comprovante-upload" class="mt-2.5 inline-block bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-4 py-2 rounded-xl cursor-pointer">
                     Anexar Comprovante
                   </label>
                 </div>
               </template>
 
-              <!-- PREVIEW COMPROVANTE -->
               <template x-if="formData.comprovanteDataUrl">
                 <div class="flex items-center justify-between bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl text-left">
                   <div class="flex items-center gap-2 overflow-hidden">
@@ -557,11 +602,22 @@
           <div x-show="formStep === 1"></div>
 
           <button type="button" x-show="formStep < 3" @click="nextStep()" class="inline-flex items-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-all">
-            Próximo <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            Avançar <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
           </button>
 
-          <button type="submit" x-show="formStep === 3" class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-md transition-all">
-            <i data-lucide="send" class="w-3.5 h-3.5"></i> Enviar Anúncio
+          <!-- BOTÃO ENVIAR COM ESTADO DE CARREGAMENTO PARA EVITAR DUPLICADOS -->
+          <button type="submit" x-show="formStep === 3" :disabled="isSubmitting" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-extrabold text-xs px-6 py-2.5 rounded-xl shadow-md transition-all disabled:opacity-50">
+            <template x-if="!isSubmitting">
+              <span class="flex items-center gap-1.5">
+                <i data-lucide="send" class="w-3.5 h-3.5"></i> Finalizar & Enviar Anúncio
+              </span>
+            </template>
+            <template x-if="isSubmitting">
+              <span class="flex items-center gap-2">
+                <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                Enviando Anúncio...
+              </span>
+            </template>
           </button>
         </div>
 
@@ -569,31 +625,51 @@
     </div>
   </div>
 
-  <!-- ========================================== -->
-  <!-- MODAL: GALERIA INTERATIVA DE FOTOS         -->
-  <!-- ========================================== -->
+  <!-- MODAL DE CONFIRMAÇÃO / FEEDBACK DE ENVIO PÓS-CADASTRO -->
+  <div x-show="openSuccessModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-md w-full p-6 text-center space-y-4">
+      <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-2xl font-black">
+        <i data-lucide="check" class="w-8 h-8"></i>
+      </div>
+      <div>
+        <h3 class="text-xl font-black text-slate-900">Anúncio Recebido com Sucesso! 🚀</h3>
+        <p class="text-xs text-slate-600 mt-1">Seu anúncio do imóvel foi enviado para análise do comprovante PIX.</p>
+      </div>
+
+      <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-left text-xs space-y-1">
+        <div class="flex items-center justify-between font-bold text-slate-800">
+          <span>Status do Anúncio:</span>
+          <span class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-md font-bold uppercase">Aguardando Validação PIX</span>
+        </div>
+        <p class="text-[11px] text-slate-500 pt-1">Assim que conferirmos o recebimento do PIX (R$ 10 ou R$ 20), o imóvel estará liberado no site!</p>
+      </div>
+
+      <button @click="openSuccessModal = false" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-3 rounded-xl shadow-md transition-all">
+        Entendi, Voltar para a Página Inicial
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL GALERIA EM TELA CHEIA -->
   <div x-show="openGalleryModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-2 sm:p-4">
     <div @click.outside="openGalleryModal = false" class="bg-slate-900 rounded-3xl w-full max-w-3xl overflow-hidden text-white relative">
       
-      <!-- BOTÃO FECHAR -->
-      <button @click="openGalleryModal = false" class="absolute top-4 right-4 z-20 bg-slate-800/80 hover:bg-slate-700 text-white p-2 rounded-full backdrop-blur-md">
+      <button @click="openGalleryModal = false" class="absolute top-4 right-4 z-20 bg-slate-800/80 hover:bg-slate-700 text-white p-2 rounded-full">
         <i data-lucide="x" class="w-5 h-5"></i>
       </button>
 
       <template x-if="selectedImovel">
         <div class="p-4 sm:p-6 space-y-4">
           
-          <!-- DISPLAY DA FOTO PRINCIPAL -->
           <div class="relative h-64 sm:h-96 bg-black rounded-2xl overflow-hidden flex items-center justify-center">
             <img :src="selectedImovel.fotos[currentPhotoIndex]" class="max-h-full max-w-full object-contain">
             
-            <!-- NAVEGAÇÃO FOTOS -->
             <template x-if="selectedImovel.fotos.length > 1">
               <div class="absolute inset-x-2 top-1/2 -translate-y-1/2 flex justify-between pointer-events-none">
-                <button @click="prevPhoto()" class="pointer-events-auto bg-slate-900/80 hover:bg-slate-800 text-white p-2 rounded-full backdrop-blur-md">
+                <button @click="prevPhoto()" class="pointer-events-auto bg-slate-900/80 hover:bg-slate-800 text-white p-2 rounded-full">
                   <i data-lucide="chevron-left" class="w-5 h-5"></i>
                 </button>
-                <button @click="nextPhoto()" class="pointer-events-auto bg-slate-900/80 hover:bg-slate-800 text-white p-2 rounded-full backdrop-blur-md">
+                <button @click="nextPhoto()" class="pointer-events-auto bg-slate-900/80 hover:bg-slate-800 text-white p-2 rounded-full">
                   <i data-lucide="chevron-right" class="w-5 h-5"></i>
                 </button>
               </div>
@@ -604,7 +680,6 @@
             </div>
           </div>
 
-          <!-- MINIATURAS DA GALERIA -->
           <template x-if="selectedImovel.fotos.length > 1">
             <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
               <template x-for="(foto, idx) in selectedImovel.fotos" :key="idx">
@@ -615,12 +690,12 @@
             </div>
           </template>
 
-          <!-- DETALHES -->
           <div class="space-y-2 border-t border-slate-800 pt-3">
             <div class="flex items-start justify-between gap-2">
               <div>
                 <span class="text-xs text-sky-400 font-bold" x-text="selectedImovel.cidade + ' · ' + selectedImovel.bairro"></span>
                 <h3 class="text-lg font-bold text-white" x-text="selectedImovel.titulo"></h3>
+                <p class="text-xs text-slate-400 mt-0.5" x-text="selectedImovel.endereco"></p>
               </div>
               <div class="text-right">
                 <span class="text-xl font-extrabold text-emerald-400">R$ <span x-text="formatMoney(selectedImovel.valor)"></span></span>
@@ -631,7 +706,7 @@
 
             <a :href="generateWhatsappUrl(selectedImovel)" target="_blank" class="w-full inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-3 rounded-xl mt-2">
               <i data-lucide="message-circle" class="w-4 h-4"></i>
-              Falar no WhatsApp com o Proprietário
+              Falar no WhatsApp Directo
             </a>
           </div>
 
@@ -641,9 +716,7 @@
     </div>
   </div>
 
-  <!-- ========================================== -->
-  <!-- MODAL: PAINEL ADMIN DE APROVAÇÃO           -->
-  <!-- ========================================== -->
+  <!-- MODAL PAINEL ADMIN -->
   <div x-show="openAdminModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
     <div @click.outside="openAdminModal = false" class="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-3xl overflow-hidden max-h-[85vh] flex flex-col">
       
@@ -685,7 +758,7 @@
               <div class="flex items-center gap-2 w-full sm:w-auto justify-end border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-200">
                 <button @click="viewComprovante(item)" class="text-[11px] font-semibold text-slate-700 bg-white border border-slate-200 px-2.5 py-1.5 rounded-xl">Comprovante</button>
                 <button @click="rejectImovel(item.id)" class="text-[11px] font-semibold text-red-600 hover:bg-red-50 border border-red-200 px-2.5 py-1.5 rounded-xl">Recusar</button>
-                <button @click="approveImovel(item.id)" class="text-[11px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3.5 py-1.5 rounded-xl shadow-xs">Aprovar</button>
+                <button @click="approveImovel(item.id)" class="text-[11px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3.5 py-1.5 rounded-xl shadow-xs">Aprovar & Publicar</button>
               </div>
             </div>
           </template>
@@ -706,12 +779,14 @@
         ],
         
         searchQuery: '', selectedCity: '', selectedType: '', sortBy: 'recentes',
-        openFormModal: false, openAdminModal: false, openGalleryModal: false,
-        formStep: 1, copiedPix: false,
+        openFormModal: false, openAdminModal: false, openGalleryModal: false, openSuccessModal: false,
+        formStep: 1, copiedPix: false, isSubmitting: false,
         selectedImovel: null, currentPhotoIndex: 0,
 
+        toast: { show: false, title: '', message: '', type: 'success' },
+
         formData: {
-          titulo: '', cidade: 'Senador Pompeu', bairro: '', tipoContrato: 'mensal', valor: null,
+          titulo: '', cidade: 'Senador Pompeu', bairro: '', endereco: '', tipoContrato: 'mensal', valor: null,
           quartos: 2, banheiros: 1, vagas: 1, descricao: '', proprietarioNome: '', whatsapp: '',
           plano: 'padrao', fotosDataUrl: [], comprovanteDataUrl: '', comprovanteNome: ''
         },
@@ -723,19 +798,18 @@
           if (savedData) {
             this.imoveis = JSON.parse(savedData);
           } else {
-            // MOCK INICIAL DE TESTES
             this.imoveis = [
               {
-                id: '1', titulo: 'Casa Ampla com Quintal Próximo ao Centro', cidade: 'Senador Pompeu', bairro: 'Centro',
-                tipoContrato: 'mensal', valor: 650, quartos: 3, banheiros: 2, vagas: 2,
+                id: '1', titulo: 'Casa Ampla com Quintal Próximo à Matriz', cidade: 'Senador Pompeu', bairro: 'Centro',
+                endereco: 'Rua Cel. Antonio Luis, 240 (Próximo à Igreja)', tipoContrato: 'mensal', valor: 650, quartos: 3, banheiros: 2, vagas: 2,
                 descricao: 'Excelente casa murada com garagem coberta e área de serviço ventilada.',
                 proprietarioNome: 'Carlos Magno', whatsapp: '5588999991111',
                 fotos: ['https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=800&q=80', 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=80'],
                 status: 'ativo', destaque: true, createdAt: new Date().toISOString()
               },
               {
-                id: '2', titulo: 'Apartamento perto da Maternidade/UFCE', cidade: 'Quixeramobim', bairro: 'Planalto',
-                tipoContrato: 'mensal', valor: 750, quartos: 2, banheiros: 1, vagas: 1,
+                id: '2', titulo: 'Apartamento perto do Hospital/UFCE', cidade: 'Quixeramobim', bairro: 'Planalto',
+                endereco: 'Av. Geraldo Bitar, 510', tipoContrato: 'mensal', valor: 750, quartos: 2, banheiros: 1, vagas: 1,
                 descricao: 'Ambiente super seguro, perfeito para estudantes ou casais.',
                 proprietarioNome: 'Maria José', whatsapp: '5588999992222',
                 fotos: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=80'],
@@ -752,11 +826,19 @@
           localStorage.setItem('aluga_sertao_imoveis', JSON.stringify(this.imoveis));
         },
 
-        // MANIPULAÇÃO DE FOTOS REAL (FILEREADER / DATAURL)
+        showToast(title, message, type = 'success') {
+          this.toast = { show: true, title, message, type };
+          setTimeout(() => { this.toast.show = false; }, 3500);
+        },
+
+        getCityCount(cidade) {
+          return this.imoveis.filter(i => i.cidade === cidade && (i.status === 'ativo' || i.status === 'alugado')).length;
+        },
+
         handleMultiplePhotos(event) {
           const files = Array.from(event.target.files);
           if (files.length + this.formData.fotosDataUrl.length > 6) {
-            alert('Você pode selecionar no máximo 6 fotos por anúncio.');
+            this.showToast('Limite Excedido', 'Você pode selecionar até 6 fotos por anúncio.', 'info');
             return;
           }
 
@@ -785,7 +867,6 @@
           }
         },
 
-        // NAVEGAÇÃO DA GALERIA
         openGallery(imovel) {
           this.selectedImovel = imovel;
           this.currentPhotoIndex = 0;
@@ -801,11 +882,13 @@
           if (this.currentPhotoIndex > 0) this.currentPhotoIndex--;
         },
 
-        // PROPRIEDADES COMPUTADAS
         get filteredImoveis() {
           return this.imoveis.filter(i => {
             if (i.status !== 'ativo' && i.status !== 'alugado') return false;
-            const matchSearch = !this.searchQuery || i.titulo.toLowerCase().includes(this.searchQuery.toLowerCase()) || i.bairro.toLowerCase().includes(this.searchQuery.toLowerCase());
+            const matchSearch = !this.searchQuery || 
+              i.titulo.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
+              i.bairro.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+              (i.endereco && i.endereco.toLowerCase().includes(this.searchQuery.toLowerCase()));
             const matchCity = !this.selectedCity || i.cidade === this.selectedCity;
             const matchType = !this.selectedType || i.tipoContrato === this.selectedType;
             return matchSearch && matchCity && matchType;
@@ -824,17 +907,17 @@
         get pendingCount() { return this.pendingImoveis.length; },
 
         nextStep() {
-          if (this.formStep === 1 && (!this.formData.titulo || !this.formData.cidade || !this.formData.bairro || !this.formData.valor)) {
-            alert('Preencha os campos obrigatórios do imóvel.');
+          if (this.formStep === 1 && (!this.formData.titulo || !this.formData.cidade || !this.formData.bairro || !this.formData.endereco || !this.formData.valor)) {
+            this.showToast('Campos Obrigatórios', 'Preencha todos os campos do imóvel (incluindo endereço).', 'info');
             return;
           }
           if (this.formStep === 2) {
             if (!this.formData.proprietarioNome || !this.formData.whatsapp) {
-              alert('Informe seu nome e WhatsApp.');
+              this.showToast('Contato Ausente', 'Informe seu nome e WhatsApp de contato.', 'info');
               return;
             }
             if (this.formData.fotosDataUrl.length === 0) {
-              alert('Por favor, selecione pelo menos 1 foto do imóvel da sua galeria.');
+              this.showToast('Fotos Necessárias', 'Selecione pelo menos 1 foto da casa.', 'info');
               return;
             }
           }
@@ -844,53 +927,61 @@
 
         submitForm() {
           if (!this.formData.comprovanteDataUrl) {
-            alert('Anexe o comprovante do PIX para finalizar.');
+            this.showToast('Comprovante Ausente', 'Anexe o comprovante do PIX para finalizar.', 'info');
             return;
           }
 
-          const novoImovel = {
-            id: Date.now().toString(),
-            titulo: this.formData.titulo,
-            cidade: this.formData.cidade,
-            bairro: this.formData.bairro,
-            tipoContrato: this.formData.tipoContrato,
-            valor: Number(this.formData.valor),
-            quartos: Number(this.formData.quartos || 0),
-            banheiros: Number(this.formData.banheiros || 0),
-            vagas: Number(this.formData.vagas || 0),
-            descricao: this.formData.descricao || 'Sem descrição.',
-            proprietarioNome: this.formData.proprietarioNome,
-            whatsapp: this.formData.whatsapp.replace(/\D/g, ''),
-            fotos: this.formData.fotosDataUrl,
-            status: 'pendente',
-            destaque: this.formData.plano === 'destaque',
-            comprovante: this.formData.comprovanteNome,
-            createdAt: new Date().toISOString()
-          };
+          this.isSubmitting = true;
 
-          this.imoveis.unshift(novoImovel);
-          this.saveToStorage();
+          setTimeout(() => {
+            const novoImovel = {
+              id: Date.now().toString(),
+              titulo: this.formData.titulo,
+              cidade: this.formData.cidade,
+              bairro: this.formData.bairro,
+              endereco: this.formData.endereco,
+              tipoContrato: this.formData.tipoContrato,
+              valor: Number(this.formData.valor),
+              quartos: Number(this.formData.quartos || 0),
+              banheiros: Number(this.formData.banheiros || 0),
+              vagas: Number(this.formData.vagas || 0),
+              descricao: this.formData.descricao || 'Sem descrição.',
+              proprietarioNome: this.formData.proprietarioNome,
+              whatsapp: this.formData.whatsapp.replace(/\D/g, ''),
+              fotos: this.formData.fotosDataUrl,
+              status: 'pendente',
+              destaque: this.formData.plano === 'destaque',
+              comprovante: this.formData.comprovanteNome,
+              createdAt: new Date().toISOString()
+            };
 
-          alert('Anúncio enviado com sucesso! Assim que confirmarmos o PIX, ele será liberado no site.');
-          this.openFormModal = false;
-          this.formStep = 1;
-          this.resetFormData();
+            this.imoveis.unshift(novoImovel);
+            this.saveToStorage();
+
+            this.isSubmitting = false;
+            this.openFormModal = false;
+            this.formStep = 1;
+            this.resetFormData();
+            
+            this.openSuccessModal = true;
+          }, 1200);
         },
 
         resetFormData() {
           this.formData = {
-            titulo: '', cidade: 'Senador Pompeu', bairro: '', tipoContrato: 'mensal', valor: null,
+            titulo: '', cidade: 'Senador Pompeu', bairro: '', endereco: '', tipoContrato: 'mensal', valor: null,
             quartos: 2, banheiros: 1, vagas: 1, descricao: '', proprietarioNome: '', whatsapp: '',
             plano: 'padrao', fotosDataUrl: [], comprovanteDataUrl: '', comprovanteNome: ''
           };
         },
 
         markAsAlugado(id) {
-          if (confirm('Marcar este imóvel como ALUGADO? Ele continuará visível com o selo por alguns dias.')) {
+          if (confirm('Marcar este imóvel como ALUGADO?')) {
             const item = this.imoveis.find(i => i.id === id);
             if (item) {
               item.status = 'alugado';
               this.saveToStorage();
+              this.showToast('Status Atualizado', 'Imóvel marcado como Alugado!', 'success');
             }
           }
         },
@@ -900,19 +991,20 @@
           if (item) {
             item.status = 'ativo';
             this.saveToStorage();
-            alert('Anúncio aprovado!');
+            this.showToast('Anúncio Aprovado', 'O imóvel já está visível no site!', 'success');
           }
         },
 
         rejectImovel(id) {
-          if (confirm('Recusar anúncio?')) {
+          if (confirm('Recusar e excluir anúncio?')) {
             this.imoveis = this.imoveis.filter(i => i.id !== id);
             this.saveToStorage();
+            this.showToast('Anúncio Recusado', 'O anúncio foi removido.', 'info');
           }
         },
 
         viewComprovante(item) {
-          alert(`Comprovante anexado: ${item.comprovante}\nPlano selecionado: ${item.destaque ? 'Destaque VIP (R$ 20,00)' : 'Padrão (R$ 10,00)'}`);
+          alert(`Comprovante: ${item.comprovante}\nPlano: ${item.destaque ? 'Destaque VIP (R$ 20,00)' : 'Padrão (R$ 10,00)'}`);
         },
 
         resetFilters() { this.searchQuery = ''; this.selectedCity = ''; this.selectedType = ''; },
@@ -920,13 +1012,14 @@
         
         generateWhatsappUrl(imovel) {
           const cleanPhone = imovel.whatsapp.replace(/\D/g, '');
-          const message = encodeURIComponent(`Olá! Vi o imóvel "${imovel.titulo}" em ${imovel.cidade} no Aluga Sertão. Ainda está disponível?`);
+          const message = encodeURIComponent(`Olá! Vi o imóvel "${imovel.titulo}" (${imovel.endereco || imovel.bairro}) em ${imovel.cidade} no Aluga Sertão. Ainda está disponível?`);
           return `https://wa.me/55${cleanPhone}?text=${message}`;
         },
 
         copyPixKey() {
           navigator.clipboard.writeText('jardesonofc@gmail.com');
           this.copiedPix = true;
+          this.showToast('Chave Copiada!', 'Chave PIX jardesonofc@gmail.com copiada.', 'success');
           setTimeout(() => { this.copiedPix = false; }, 2000);
         }
       }
